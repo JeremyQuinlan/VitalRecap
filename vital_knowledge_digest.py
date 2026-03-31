@@ -560,12 +560,12 @@ def build_html(digest_text, subject, email_date, tts_rate):
   function updateNotifyBtn() {{
     const btn = document.getElementById("notify-btn");
     if (Notification.permission === "granted") {{
-      btn.textContent = "\u{1F514} Notifications on";
+      btn.textContent = "🔔 Notifications on";
       btn.classList.add("enabled");
     }} else if (Notification.permission === "denied") {{
-      btn.textContent = "\u{1F515} Blocked";
+      btn.textContent = "🔕 Blocked";
     }} else {{
-      btn.textContent = "\u{1F514} Notify me";
+      btn.textContent = "🔔 Notify me";
       btn.classList.remove("enabled");
     }}
   }}
