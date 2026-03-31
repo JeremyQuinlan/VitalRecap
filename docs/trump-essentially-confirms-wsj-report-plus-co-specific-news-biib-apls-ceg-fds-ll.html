@@ -31,7 +31,7 @@
     letter-spacing: 0.05em;
   }
   .back-link:hover { color: #c9b97a; }
-  .vk-logo {
+  .site-name {
     font-size: 12px;
     color: #333;
     font-family: 'Courier New', monospace;
@@ -87,35 +87,46 @@
     bottom: 0; left: 0; right: 0;
     background: #111;
     border-top: 1px solid #222;
-    padding: 12px 24px;
+    padding: 10px 20px;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
     font-family: 'Courier New', monospace;
-    font-size: 13px;
+    font-size: 12px;
   }
   #tts-bar button {
     background: #1a1a1a;
     border: 1px solid #333;
     color: #e8e4d9;
-    padding: 6px 16px;
+    padding: 5px 12px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 11px;
     border-radius: 3px;
     font-family: 'Courier New', monospace;
     transition: background 0.15s;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
   }
   #tts-bar button:hover { background: #2a2a2a; }
   #tts-bar button.active { background: #3d3820; border-color: #c9b97a; color: #c9b97a; }
-  #tts-status { color: #555; flex: 1; font-size: 12px; }
+  #tts-bar button.skip { color: #888; font-size: 11px; }
+  #tts-bar button.skip:hover { color: #e8e4d9; background: #2a2a2a; }
+  #tts-status { color: #555; flex: 1; font-size: 11px; margin-left: 4px; }
+  .notify-btn {
+    margin-left: auto;
+    background: #1a1a2a !important;
+    border-color: #334 !important;
+    color: #668 !important;
+    font-size: 10px !important;
+  }
+  .notify-btn.enabled { color: #4c8faf !important; border-color: #4c8faf44 !important; background: #1a2a3a !important; }
 </style>
 </head>
 <body>
 
 <div class="top-bar">
   <a class="back-link" href="index.html">&#8592; All Digests</a>
-  <span class="vk-logo">VITAL KNOWLEDGE</span>
+  <span class="site-name">MARKET DIGEST</span>
 </div>
 
 <header>
@@ -128,39 +139,44 @@
 <hr class="divider">
 
 <h2>MARKETS</h2>
-<p>Market data not provided in this earnings-focused newsletter.</p>
+<p>Markets were not reported in today's newsletter.</p>
 <h2>RATES & FED</h2>
-<p>No Fed or Treasury yield information provided in today's update.</p>
+<p>No Fed or Treasury developments were covered in today's edition.</p>
 <h2>MARKET OUTLOOK</h2>
-<p>No specific market outlook provided in this earnings-focused edition.</p>
+<p>No market outlook was provided in today's newsletter.</p>
 <h2>GEOPOLITICAL</h2>
-<p>Trump's social media post essentially confirms the WSJ report about the US exiting Middle East conflicts, telling countries to buy energy from America or "take it" from the Strait of Hormuz, declaring "Iran has been, essentially, decimated. The hard part is done. Go get your own oil!" (Trump social media). VAT Group cited Middle East-related supply chain disruptions impacting Q1 revenue, though underlying semiconductor demand remains robust.</p>
+<p>Trump's social media post essentially confirmed the WSJ report about the US exiting Middle East conflicts, telling countries to either buy energy from America or "take it" from the Strait of Hormuz, declaring "Iran has been, essentially, decimated. The hard part is done. Go get your own oil!" (Trump social media).</p>
 <h2>COMPANY NEWS</h2>
-<p><strong>BIIB</strong> will acquire <strong>APLS</strong> for $41 per share cash plus up to $2 per share in contingent value rights (total ~$5.6B), representing a massive premium to Apellis's $17.09 Monday close. The deal is expected to be increasingly accretive starting in 2027 and meaningfully boost Biogen's EPS growth through the decade.</p>
-<p><strong>LLY</strong> is buying <strong>CNTA</strong> for $38 per share cash plus up to $9 per share CVRs (total potential value $47 vs. Monday's $27.58 close, worth up to $7.8B total). Centessa develops treatments for excessive daytime sleepiness and other neurological conditions.</p>
-<p><strong>MKC</strong> delivered upside with Q1 EPS of 66 cents vs. 59 cents expected, driven by revenue of $1.87B vs. $1.79B consensus. Organic growth of 1.2% fell slightly short of 1.4% expectations due to Flavor Solutions pressure, but gross margins expanded 100 basis points (20 basis points ahead of estimates). The lack of guidance raise despite the beat might disappoint, though multiple reports suggest a Unilever deal announcement is imminent.</p>
-<p><strong>CEG</strong> is targeting 20%+ base EPS growth from 2026-2029 and boosted its buyback authorization to $5B. For 2026, the company sees EPS of $11-12 (midpoint $11.50), slightly below the $11.72 consensus.</p>
-<p><strong>FDS</strong> beat Q2 EPS expectations (4.46 vs. 4.37) on strong 6.8% organic revenue growth, though operating margins fell 230 basis points to 35% vs. 35.5% expected. The company raised full-year EPS guidance to $17.25-17.75 from the prior $16.90-17.60.</p>
-<p><strong>SNX</strong> crushed Q1 expectations with EPS of 4.73 vs. 3.29 consensus on robust sales of $17.16B vs. $15.55B expected. Q2 guidance midpoints are well ahead of Street estimates.</p>
-<p><strong>NKE</strong> insists it won't sell Converse despite Authentic Brands expressing interest (Bloomberg). Given Converse's struggles (consensus models -25% revenue in F26 following -19% and -14% declines), investors would welcome a divestiture though it wouldn't bring significant proceeds.</p>
-<p>Whoop raised $575M at a $10.1B valuation, nearly tripling its 2021 valuation of $3.6B as the fitness wearable company heads toward an IPO (Bloomberg).</p>
+<p><strong>BIIB</strong> will acquire <strong>APLS</strong> for $41 per share in cash (~$5.6B) plus a CVR worth up to $2 per share (APLS closed Monday at $17.09). The transaction is expected to be increasingly accretive to Biogen's Non-GAAP diluted EPS starting in 2027 and meaningfully boost the company's EPS growth rate through the decade.</p>
+<p><strong>LLY</strong> will buy <strong>CNTA</strong> for $38 per share cash (~$6.3B) plus a CVR worth up to $9 per share (~$1.5B) for a total potential value of $47 (CNTA closed Monday at $27.58). Centessa is developing treatments for excessive daytime sleepiness and other neurological conditions.</p>
+<p><strong>MKC</strong> reported upside on FQ1 adjusted EPS (66¢ vs. Street 59¢) driven by higher revenue ($1.87B vs. Street $1.79B), though organic revenue growth of 1.2% fell slightly short of the 1.4% expectation. Gross margins expanded 100 basis points (about 20 basis points ahead of expectations) while the company reiterated full-year guidance. Multiple reports suggest a Unilever deal could be announced imminently.</p>
+<p><strong>NKE</strong> insists it doesn't plan to sell Converse, but Authentic Brands has expressed interest in buying the struggling business (Bloomberg). Investors would welcome a Converse divestiture given the brand's enormous struggles, though it wouldn't bring in significant money with consensus modeling Converse revenue down 25% in F26 to $1.26B.</p>
+<p><strong>CEG</strong> is targeting base EPS CAGR of 20%+ from 2026-2029 and increased its buyback authorization to $5B. For 2026 specifically, the company sees EPS of $11-12 with a mid-point of $11.50, slightly below consensus of $11.72.</p>
+<p><strong>FDS</strong> reported modest FQ2 EPS upside (4.46 vs. Street 4.37) driven by 6.8% organic revenue growth versus Street expectations of 6%, though operating margins fell short at 35% versus Street 35.5%. The company raised full-year EPS guidance to $17.25-17.75 from prior $16.90-17.60.</p>
+<p><strong>SNX</strong> delivered strong FQ1 EPS upside (4.73 vs. Street 3.29) on robust sales ($17.16B vs. Street $15.55B) and margin expansion. FQ2 guidance mid-points are ahead of plan with EPS of $4 versus Street $3.45.</p>
+<p>Whoop was valued at $10.1B after a $575M capital raise, up from its $3.6B valuation in 2021 (Bloomberg).</p>
+<p>VAT Group issued a mixed update with Q1 revenue tracking below guidance at CHF215MM versus prior forecast of CHF240-260MM due to Middle East supply chain disruptions, though underlying demand remains very strong with robust book-to-bill at 1.6x.</p>
 <h2>MACRO & FED DATES</h2>
-<p>No macro or Fed dates provided.</p>
+<p>No macro or Fed dates were provided in today's newsletter.</p>
 <h2>EARNINGS THIS WEEK</h2>
-<p>No earnings calendar provided.</p>
+<p>No earnings calendar was provided.</p>
 <h2>EARNINGS NEXT 2 WEEKS</h2>
-<p>No earnings calendar provided.</p>
+<p>No earnings calendar was provided.</p>
 
 <div id="tts-bar">
   <button id="btn-play" onclick="togglePlay()">&#9654; Play</button>
-  <button id="btn-stop" onclick="stopReading()">&#9632; Stop</button>
-  <button id="btn-replay" onclick="replayReading()">&#8635; Replay</button>
+  <button class="skip" onclick="skipBack()">&#8592; 10s</button>
+  <button class="skip" onclick="skipForward()">10s &#8594;</button>
+  <button onclick="stopReading()">&#9632; Stop</button>
+  <button onclick="replayReading()">&#8635; Replay</button>
   <span id="tts-status">Ready &mdash; auto-starting...</span>
+  <button class="notify-btn" id="notify-btn" onclick="requestNotifications()">&#128276; Notify me</button>
 </div>
 
 <script>
-  const digestText = "MARKETS Market data not provided in this earnings-focused newsletter. RATES & FED No Fed or Treasury yield information provided in today's update. MARKET OUTLOOK No specific market outlook provided in this earnings-focused edition. GEOPOLITICAL Trump's social media post essentially confirms the WSJ report about the US exiting Middle East conflicts, telling countries to buy energy from America or \"take it\" from the Strait of Hormuz, declaring \"Iran has been, essentially, decimated. The hard part is done. Go get your own oil!\" (Trump social media). VAT Group cited Middle East-related supply chain disruptions impacting Q1 revenue, though underlying semiconductor demand remains robust. COMPANY NEWS BIIB will acquire APLS for $41 per share cash plus up to $2 per share in contingent value rights (total ~$5.6B), representing a massive premium to Apellis's $17.09 Monday close. The deal is expected to be increasingly accretive starting in 2027 and meaningfully boost Biogen's earnings per share growth through the decade. LLY is buying CNTA for $38 per share cash plus up to $9 per share CVRs (total potential value $47 vs. Monday's $27.58 close, worth up to $7.8B total). Centessa develops treatments for excessive daytime sleepiness and other neurological conditions. MKC delivered upside with Q1 earnings per share of 66 cents vs. 59 cents expected, driven by revenue of $1.87B vs. $1.79B consensus. Organic growth of 1.2% fell slightly short of 1.4% expectations due to Flavor Solutions pressure, but gross margins expanded 100 basis points (20 basis points ahead of estimates). The lack of guidance raise despite the beat might disappoint, though multiple reports suggest a Unilever deal announcement is imminent. CEG is targeting 20%+ base earnings per share growth from 2026-2029 and boosted its buyback authorization to $5B. For 2026, the company sees earnings per share of $11-12 (midpoint $11.50), slightly below the $11.72 consensus. FDS beat Q2 earnings per share expectations (4.46 vs. 4.37) on strong 6.8% organic revenue growth, though operating margins fell 230 basis points to 35% vs. 35.5% expected. The company raised full-year earnings per share guidance to $17.25-17.75 from the prior $16.90-17.60. SNX crushed Q1 expectations with earnings per share of 4.73 vs. 3.29 consensus on robust sales of $17.16B vs. $15.55B expected. Q2 guidance midpoints are well ahead of Street estimates. NKE insists it won't sell Converse despite Authentic Brands expressing interest (Bloomberg). Given Converse's struggles (consensus models -25% revenue in F26 following -19% and -14% declines), investors would welcome a divestiture though it wouldn't bring significant proceeds. Whoop raised $575M at a $10.1B valuation, nearly tripling its 2021 valuation of $3.6B as the fitness wearable company heads toward an IPO (Bloomberg). MACRO & FED DATES No macro or Fed dates provided. EARNINGS THIS WEEK No earnings calendar provided. EARNINGS NEXT 2 WEEKS No earnings calendar provided.";
+  const digestText = "MARKETS Markets were not reported in today's newsletter. RATES & FED No Fed or Treasury developments were covered in today's edition. MARKET OUTLOOK No market outlook was provided in today's newsletter. GEOPOLITICAL Trump's social media post essentially confirmed the WSJ report about the US exiting Middle East conflicts, telling countries to either buy energy from America or \"take it\" from the Strait of Hormuz, declaring \"Iran has been, essentially, decimated. The hard part is done. Go get your own oil!\" (Trump social media). COMPANY NEWS BIIB will acquire APLS for $41 per share in cash (~$5.6B) plus a CVR worth up to $2 per share (APLS closed Monday at $17.09). The transaction is expected to be increasingly accretive to Biogen's Non-GAAP diluted earnings per share starting in 2027 and meaningfully boost the company's earnings per share growth rate through the decade. LLY will buy CNTA for $38 per share cash (~$6.3B) plus a CVR worth up to $9 per share (~$1.5B) for a total potential value of $47 (CNTA closed Monday at $27.58). Centessa is developing treatments for excessive daytime sleepiness and other neurological conditions. MKC reported upside on FQ1 adjusted earnings per share (66¢ vs. Street 59¢) driven by higher revenue ($1.87B vs. Street $1.79B), though organic revenue growth of 1.2% fell slightly short of the 1.4% expectation. Gross margins expanded 100 basis points (about 20 basis points ahead of expectations) while the company reiterated full-year guidance. Multiple reports suggest a Unilever deal could be announced imminently. NKE insists it doesn't plan to sell Converse, but Authentic Brands has expressed interest in buying the struggling business (Bloomberg). Investors would welcome a Converse divestiture given the brand's enormous struggles, though it wouldn't bring in significant money with consensus modeling Converse revenue down 25% in F26 to $1.26B. CEG is targeting base earnings per share CAGR of 20%+ from 2026-2029 and increased its buyback authorization to $5B. For 2026 specifically, the company sees earnings per share of $11-12 with a mid-point of $11.50, slightly below consensus of $11.72. FDS reported modest FQ2 earnings per share upside (4.46 vs. Street 4.37) driven by 6.8% organic revenue growth versus Street expectations of 6%, though operating margins fell short at 35% versus Street 35.5%. The company raised full-year earnings per share guidance to $17.25-17.75 from prior $16.90-17.60. SNX delivered strong FQ1 earnings per share upside (4.73 vs. Street 3.29) on robust sales ($17.16B vs. Street $15.55B) and margin expansion. FQ2 guidance mid-points are ahead of plan with earnings per share of $4 versus Street $3.45. Whoop was valued at $10.1B after a $575M capital raise, up from its $3.6B valuation in 2021 (Bloomberg). VAT Group issued a mixed update with Q1 revenue tracking below guidance at CHF215MM versus prior forecast of CHF240-260MM due to Middle East supply chain disruptions, though underlying demand remains very strong with robust book-to-bill at 1.6x. MACRO & FED DATES No macro or Fed dates were provided in today's newsletter. EARNINGS THIS WEEK No earnings calendar was provided. EARNINGS NEXT 2 WEEKS No earnings calendar was provided.";
   const rate = 1.0;
+  const CHARS_PER_10S = 125;
   let charIndex = 0;
   let isPaused = false;
   let utterance = null;
@@ -185,6 +201,7 @@
 
   function speakFrom(startChar) {
     window.speechSynthesis.cancel();
+    startChar = Math.max(0, Math.min(startChar, digestText.length - 1));
     const text = startChar > 0 ? digestText.slice(startChar) : digestText;
     utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = rate;
@@ -211,10 +228,106 @@
     else { charIndex = 0; isPaused = false; speakFrom(0); }
   }
 
-  function stopReading() { isPaused = false; charIndex = 0; window.speechSynthesis.cancel(); setPlayBtn(false); setStatus("Stopped — press Replay to start over"); }
-  function replayReading() { isPaused = false; charIndex = 0; window.speechSynthesis.cancel(); setStatus("Restarting..."); setTimeout(() => speakFrom(0), 300); }
+  function skipForward() {
+    const wasPlaying = window.speechSynthesis.speaking && !isPaused;
+    window.speechSynthesis.cancel();
+    charIndex = Math.min(charIndex + CHARS_PER_10S, digestText.length - 1);
+    if (wasPlaying) { isPaused = false; speakFrom(charIndex); setStatus("Skipped forward 10s..."); }
+    else { setStatus("Skipped forward — press Play to resume from here"); }
+  }
 
-  window.addEventListener("load", () => { setTimeout(() => speakFrom(0), 1800); });
+  function skipBack() {
+    const wasPlaying = window.speechSynthesis.speaking && !isPaused;
+    window.speechSynthesis.cancel();
+    charIndex = Math.max(0, charIndex - CHARS_PER_10S);
+    if (wasPlaying) { isPaused = false; speakFrom(charIndex); setStatus("Skipped back 10s..."); }
+    else { setStatus("Skipped back — press Play to resume from here"); }
+  }
+
+  function stopReading() {
+    isPaused = false; charIndex = 0;
+    window.speechSynthesis.cancel();
+    setPlayBtn(false);
+    setStatus("Stopped — press Replay to start over");
+  }
+
+  function replayReading() {
+    isPaused = false; charIndex = 0;
+    window.speechSynthesis.cancel();
+    setStatus("Restarting...");
+    setTimeout(() => speakFrom(0), 300);
+  }
+
+  // ── Push Notifications ──────────────────────────────
+  function updateNotifyBtn() {
+    const btn = document.getElementById("notify-btn");
+    if (Notification.permission === "granted") {
+      btn.textContent = "🔔 Notifications on";
+      btn.classList.add("enabled");
+    } else if (Notification.permission === "denied") {
+      btn.textContent = "🔕 Blocked";
+    } else {
+      btn.textContent = "🔔 Notify me";
+      btn.classList.remove("enabled");
+    }
+  }
+
+  function requestNotifications() {
+    if (!("Notification" in window)) {
+      setStatus("Notifications not supported in this browser");
+      return;
+    }
+    if (Notification.permission === "granted") {
+      setStatus("Notifications already enabled!");
+      return;
+    }
+    Notification.requestPermission().then(permission => {
+      updateNotifyBtn();
+      if (permission === "granted") {
+        setStatus("Notifications enabled — you'll be alerted when new digests arrive");
+        new Notification("Market Digest", {
+          body: "You'll now get notified when new digests are published.",
+          icon: ""
+        });
+      } else {
+        setStatus("Notifications blocked — enable in browser settings to receive alerts");
+      }
+    });
+  }
+
+  // Check for new digests every 5 minutes and notify
+  function checkForNewDigest() {
+    fetch("digests.json?t=" + Date.now())
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          const latest = data[0];
+          const lastSeen = localStorage.getItem("lastSeenDigest");
+          if (lastSeen !== latest.filename) {
+            localStorage.setItem("lastSeenDigest", latest.filename);
+            if (Notification.permission === "granted" && lastSeen !== null) {
+              const n = new Notification("New Market Digest", {
+                body: latest.subject + " · " + latest.email_date,
+                icon: ""
+              });
+              n.onclick = () => { window.open(latest.filename); };
+            }
+          }
+        }
+      })
+      .catch(() => {});
+  }
+
+  window.addEventListener("load", () => {
+    updateNotifyBtn();
+    // Store current digest as seen
+    localStorage.setItem("lastSeenDigest", window.location.pathname.split("/").pop());
+    // Start polling for new digests
+    checkForNewDigest();
+    setInterval(checkForNewDigest, 5 * 60 * 1000);
+    // Auto-start TTS
+    setTimeout(() => speakFrom(0), 1800);
+  });
 </script>
 
 </body>
