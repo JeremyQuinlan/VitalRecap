@@ -296,6 +296,22 @@ def markdown_to_html_body(text):
 def prepare_tts_text(html_body):
     text = re.sub(r"<[^>]+>", " ", html_body)
     text = re.sub(r"\s+", " ", text).strip()
+
+    # Strip empty section placeholders so Guy skips them
+    empty_patterns = [
+        r"[^.]*[Nn]o market data[^.]*\.",
+        r"[^.]*[Nn]ot provided in this[^.]*\.",
+        r"[^.]*[Nn]o (?:Fed|rates|Treasury|rate)[^.]*provided[^.]*\.",
+        r"[^.]*[Nn]o (?:broader |specific )?market outlook[^.]*\.",
+        r"[^.]*[Nn]o geopolitical[^.]*\.",
+        r"[^.]*[Nn]o (?:earnings|upcoming earnings)[^.]*\.",
+        r"[^.]*[Nn]o (?:macro|scheduled)[^.]*provided[^.]*\.",
+        r"[^.]*(?:market data|rates?|outlook|geopolitical|earnings)[^.]*not (?:provided|included|covered|available)[^.]*\.",
+        r"[^.]*[Nn]ot (?:provided|included|covered) in this[^.]*\.",
+    ]
+    for pattern in empty_patterns:
+        text = re.sub(pattern, " ", text, flags=re.IGNORECASE)
+
     text = re.sub(r"\bbp\b", "basis points", text)
     text = re.sub(r"\bBP\b", "basis points", text)
     text = re.sub(r"\bpct\b", "percent", text, flags=re.IGNORECASE)
@@ -305,6 +321,7 @@ def prepare_tts_text(html_body):
     text = re.sub(r"\bQ/Q\b", "quarter over quarter", text)
     text = re.sub(r"\bEPS\b", "earnings per share", text)
     text = re.sub(r"\bET\b", "Eastern time", text)
+    text = re.sub(r"\s+", " ", text).strip()
     return text
 
 
