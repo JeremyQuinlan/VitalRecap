@@ -1,16 +1,10 @@
 """
-Vital Knowledge Newsletter → Edge/Guy Readout + GitHub Pages
--------------------------------------------------------------
-Polls Yahoo Mail via IMAP for newsletters from Vital Knowledge,
-summarizes them with Claude in Adam's voice, saves a styled HTML
-digest, and commits it to GitHub Pages for sharing.
+The Victory Lane — Market Intelligence Digest
+----------------------------------------------
+Polls Yahoo Mail via IMAP for newsletters, summarizes them with Claude,
+saves styled HTML digests, and commits to GitHub Pages.
 
-Features:
-- Styled index page listing all past digests
-- 10-second skip forward/back buttons
-- Desktop push notifications when new digest is published
-
-Folder: C:\\Tools\\VitalRecap\\
+Folder: C:\\Tools\\TheVictoryLane\\
 Setup:
   pip install anthropic requests
   Then configure the CONFIG block below for local use.
@@ -36,7 +30,7 @@ from zoneinfo import ZoneInfo
 EASTERN = ZoneInfo("America/New_York")
 
 # ─────────────────────────────────────────────
-# CONFIG — used for local runs
+# CONFIG
 # ─────────────────────────────────────────────
 CONFIG = {
     "yahoo_email":        os.environ.get("YAHOO_EMAIL",        "YOUR_EMAIL@yahoo.com"),
@@ -52,9 +46,10 @@ CONFIG = {
 }
 # ─────────────────────────────────────────────
 
+SITE_NAME = "The Victory Lane"
 
-SUMMARIZE_PROMPT = """You are summarizing a Vital Knowledge financial newsletter written by Adam Crisafulli.
-Your job is to produce a concise but substantive digest that captures Adam's voice — direct, confident,
+SUMMARIZE_PROMPT = """You are summarizing a financial newsletter for a trading team called Victory Lane.
+Your job is to produce a concise but substantive digest that captures the author's voice — direct, confident,
 uses parenthetical asides, cites sources inline (NYT, WSJ, FT, Bloomberg, etc.), and isn't shy about
 giving a market view. Write in flowing prose for the narrative sections, not just bullet fragments.
 
@@ -66,11 +61,11 @@ Do NOT use basis points or point values for SPX and Nasdaq.
 Also include Dow, R2K, Brent, Gold, Silver, BTC, DXY if present — these can use their native units.
 
 ## RATES & FED
-Treasury move and Fed expectations. Keep to 2-3 sentences in Adam's voice.
+Treasury move and Fed expectations. Keep to 2-3 sentences.
 When referencing basis point moves on yields, write "basis points" in full, never "bp".
 
 ## MARKET OUTLOOK
-Adam's editorial view on where markets are headed. 3-5 sentences, confident tone.
+Editorial view on where markets are headed. 3-5 sentences, confident tone.
 
 ## GEOPOLITICAL
 Key geopolitical developments. Prose bullets with source attribution in parentheses.
@@ -94,7 +89,8 @@ Newsletter content:
 {body}
 
 Important rules:
-- Write in Adam Crisafulli's voice throughout
+- Write in a direct, confident voice throughout
+- Do NOT mention "Vital Knowledge", "Vital", "Dawn", or the newsletter's name anywhere in your output
 - Consolidate any repeated news items — mention each story only once
 - Include specific numbers and source attributions
 - Always write "basis points" in full, never abbreviate as "bp"
@@ -102,9 +98,32 @@ Important rules:
 - Do not include scheduling notes, subscription info, or technical notices"""
 
 
+def clean_subject(raw_subject):
+    """Rewrite email subject to Victory Lane branding, stripping VK references."""
+    s = re.sub(r"^Vital Knowledge:\s*", "", raw_subject).strip()
+
+    # Extract date portion if present
+    date_match = re.search(r"(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s+\w+\s+\d+,?\s*\d{4}", s)
+    date_str = date_match.group(0) if date_match else ""
+
+    s_lower = s.lower()
+
+    if "dawn" in s_lower or "morning" in s_lower:
+        return f"Morning Intelligentsia · {date_str}".strip(" ·")
+    elif "mid-day" in s_lower or "midday" in s_lower:
+        return f"Mid-Day Update · {date_str}".strip(" ·")
+    elif "recap" in s_lower or "close" in s_lower:
+        return f"Market Recap · {date_str}".strip(" ·")
+    else:
+        # Strip any remaining "vital" or "knowledge" from other subjects
+        s = re.sub(r"\b(vital|knowledge|dawn)\b", "", s, flags=re.IGNORECASE)
+        s = re.sub(r"\s+", " ", s).strip(" -·")
+        return s
+
+
 def get_category_tag(subject):
     s = subject.lower()
-    if "dawn" in s or "morning" in s:
+    if "morning intelligentsia" in s or "morning" in s:
         return "MORNING"
     elif "mid-day" in s or "midday" in s:
         return "MID-DAY"
@@ -242,14 +261,14 @@ def fetch_new_emails(config):
             print(f"  Skipping old email (sent {sent_utc.strftime('%Y-%m-%d %H:%M UTC')})")
             continue
 
-        subject = decode_str(msg.get("Subject", "(No Subject)"))
-        clean_subject = re.sub(r"^Vital Knowledge:\s*", "", subject).strip()
+        raw_subject = decode_str(msg.get("Subject", "(No Subject)"))
+        subject = clean_subject(raw_subject)
         body = get_email_body(msg)
         email_date = get_email_date(msg)
 
         if body.strip():
-            results.append((uid_str, clean_subject, body, email_date, sent_utc))
-            print(f"  Found: {clean_subject} ({email_date})")
+            results.append((uid_str, subject, body, email_date, sent_utc))
+            print(f"  Found: {subject} ({email_date})")
 
     mail.logout()
     results.sort(key=lambda x: x[4])
@@ -296,36 +315,35 @@ def markdown_to_html_body(text):
 def prepare_tts_text(html_body):
     """Convert HTML digest to clean TTS text.
     Skips sections with fewer than 120 chars of content (placeholder sections).
+    Also strips any remaining VK brand references.
     """
-    # Split by h2 section headers, process each section individually
     sections = re.split(r"<h2>[^<]*</h2>", html_body)
     headers = re.findall(r"<h2>([^<]*)</h2>", html_body)
 
     tts_parts = []
 
     for i, section_html in enumerate(sections):
-        # Strip HTML tags to get plain text
         section_text = re.sub(r"<[^>]+>", " ", section_html)
         section_text = re.sub(r"\s+", " ", section_text).strip()
 
         if i == 0:
-            # Preamble before first header — always include
             if section_text:
                 tts_parts.append(section_text)
             continue
 
         header = headers[i - 1] if i - 1 < len(headers) else ""
 
-        # Skip section if content is too short — it's a placeholder
         if len(section_text) < 120:
             continue
 
-        # Add header as spoken label then content
         if header:
             tts_parts.append(header + ".")
         tts_parts.append(section_text)
 
     text = " ".join(tts_parts)
+
+    # Strip any remaining brand references
+    text = re.sub(r"\b(Vital Knowledge|Vital Dawn|Vital)\b", "", text, flags=re.IGNORECASE)
 
     # Abbreviation expansions
     text = re.sub(r"\bbp\b", "basis points", text)
@@ -351,16 +369,13 @@ def build_html(digest_text, subject, email_date, tts_rate):
         .replace("`", "'"))
     tag = get_category_tag(subject)
     bg, fg = get_tag_color(tag)
-
-    # Chars per second at rate 1.0 — used for 10-sec skip estimation
-    # Average speaking rate ~150 wpm, ~5 chars/word = ~750 chars/min = ~12.5 chars/sec
     chars_per_10sec = int(125 * tts_rate)
 
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>{subject}</title>
+<title>{subject} · {SITE_NAME}</title>
 <style>
   * {{ box-sizing: border-box; margin: 0; padding: 0; }}
   body {{
@@ -369,7 +384,7 @@ def build_html(digest_text, subject, email_date, tts_rate):
     color: #e8e4d9;
     max-width: 820px;
     margin: 0 auto;
-    padding: 40px 32px 80px;
+    padding: 40px 32px 100px;
     line-height: 1.75;
     font-size: 16px;
   }}
@@ -443,37 +458,56 @@ def build_html(digest_text, subject, email_date, tts_rate):
     bottom: 0; left: 0; right: 0;
     background: #111;
     border-top: 1px solid #222;
-    padding: 10px 20px;
+    padding: 8px 16px;
     display: flex;
     align-items: center;
     gap: 8px;
     font-family: 'Courier New', monospace;
-    font-size: 12px;
+    font-size: 11px;
+    flex-wrap: wrap;
   }}
   #tts-bar button {{
     background: #1a1a1a;
     border: 1px solid #333;
     color: #e8e4d9;
-    padding: 5px 12px;
+    padding: 5px 10px;
     cursor: pointer;
     font-size: 11px;
     border-radius: 3px;
     font-family: 'Courier New', monospace;
     transition: background 0.15s;
-    letter-spacing: 0.04em;
     white-space: nowrap;
   }}
   #tts-bar button:hover {{ background: #2a2a2a; }}
   #tts-bar button.active {{ background: #3d3820; border-color: #c9b97a; color: #c9b97a; }}
-  #tts-bar button.skip {{ color: #888; font-size: 11px; }}
-  #tts-bar button.skip:hover {{ color: #e8e4d9; background: #2a2a2a; }}
-  #tts-status {{ color: #555; flex: 1; font-size: 11px; margin-left: 4px; }}
+  #tts-bar button.skip {{ color: #777; }}
+  #tts-bar button.skip:hover {{ color: #e8e4d9; }}
+  .speed-group {{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 4px;
+  }}
+  .speed-group label {{
+    color: #555;
+    font-size: 11px;
+    white-space: nowrap;
+  }}
+  #speed-slider {{
+    width: 80px;
+    accent-color: #c9b97a;
+  }}
+  #speed-val {{
+    color: #c9b97a;
+    font-size: 11px;
+    min-width: 28px;
+  }}
+  #tts-status {{ color: #555; flex: 1; font-size: 11px; min-width: 120px; }}
   .notify-btn {{
     margin-left: auto;
     background: #1a1a2a !important;
     border-color: #334 !important;
     color: #668 !important;
-    font-size: 10px !important;
   }}
   .notify-btn.enabled {{ color: #4c8faf !important; border-color: #4c8faf44 !important; background: #1a2a3a !important; }}
 </style>
@@ -481,8 +515,8 @@ def build_html(digest_text, subject, email_date, tts_rate):
 <body>
 
 <div class="top-bar">
-  <a class="back-link" href="index.html">&#8592; All Digests</a>
-  <span class="site-name">MARKET DIGEST</span>
+  <a class="back-link" href="index.html">&#8592; All Dispatches</a>
+  <span class="site-name">THE VICTORY LANE</span>
 </div>
 
 <header>
@@ -500,14 +534,19 @@ def build_html(digest_text, subject, email_date, tts_rate):
   <button class="skip" onclick="skipForward()">10s &#8594;</button>
   <button onclick="stopReading()">&#9632; Stop</button>
   <button onclick="replayReading()">&#8635; Replay</button>
+  <div class="speed-group">
+    <label>Speed</label>
+    <input type="range" id="speed-slider" min="0.5" max="2.0" step="0.1" value="{tts_rate}" oninput="updateSpeed(this.value)">
+    <span id="speed-val">{tts_rate}x</span>
+  </div>
   <span id="tts-status">Ready &mdash; auto-starting...</span>
-  <button class="notify-btn" id="notify-btn" onclick="requestNotifications()">&#128276; Notify me</button>
+  <button class="notify-btn" id="notify-btn" onclick="requestNotifications()">Notify me</button>
 </div>
 
 <script>
   const digestText = "{tts_text_escaped}";
-  const rate = {tts_rate};
   const CHARS_PER_10S = {chars_per_10sec};
+  let rate = {tts_rate};
   let charIndex = 0;
   let isPaused = false;
   let utterance = null;
@@ -520,6 +559,15 @@ def build_html(digest_text, subject, email_date, tts_rate):
       voices.find(v => v.lang.startsWith("en-US")) ||
       voices[0]
     );
+  }}
+
+  function updateSpeed(val) {{
+    rate = parseFloat(val);
+    document.getElementById("speed-val").textContent = rate.toFixed(1) + "x";
+    // If currently playing, restart from current position at new speed
+    if (window.speechSynthesis.speaking && !isPaused) {{
+      speakFrom(charIndex);
+    }}
   }}
 
   function setStatus(msg) {{ document.getElementById("tts-status").textContent = msg; }}
@@ -564,7 +612,7 @@ def build_html(digest_text, subject, email_date, tts_rate):
     window.speechSynthesis.cancel();
     charIndex = Math.min(charIndex + CHARS_PER_10S, digestText.length - 1);
     if (wasPlaying) {{ isPaused = false; speakFrom(charIndex); setStatus("Skipped forward 10s..."); }}
-    else {{ setStatus("Skipped forward \u2014 press Play to resume from here"); }}
+    else {{ setStatus("Skipped forward \u2014 press Play to resume"); }}
   }}
 
   function skipBack() {{
@@ -572,7 +620,7 @@ def build_html(digest_text, subject, email_date, tts_rate):
     window.speechSynthesis.cancel();
     charIndex = Math.max(0, charIndex - CHARS_PER_10S);
     if (wasPlaying) {{ isPaused = false; speakFrom(charIndex); setStatus("Skipped back 10s..."); }}
-    else {{ setStatus("Skipped back \u2014 press Play to resume from here"); }}
+    else {{ setStatus("Skipped back \u2014 press Play to resume"); }}
   }}
 
   function stopReading() {{
@@ -589,44 +637,31 @@ def build_html(digest_text, subject, email_date, tts_rate):
     setTimeout(() => speakFrom(0), 300);
   }}
 
-  // ── Push Notifications ──────────────────────────────
   function updateNotifyBtn() {{
     const btn = document.getElementById("notify-btn");
     if (Notification.permission === "granted") {{
-      btn.textContent = "🔔 Notifications on";
+      btn.textContent = "Notifications on";
       btn.classList.add("enabled");
     }} else if (Notification.permission === "denied") {{
-      btn.textContent = "🔕 Blocked";
+      btn.textContent = "Notifications blocked";
     }} else {{
-      btn.textContent = "🔔 Notify me";
+      btn.textContent = "Notify me";
       btn.classList.remove("enabled");
     }}
   }}
 
   function requestNotifications() {{
-    if (!("Notification" in window)) {{
-      setStatus("Notifications not supported in this browser");
-      return;
-    }}
-    if (Notification.permission === "granted") {{
-      setStatus("Notifications already enabled!");
-      return;
-    }}
+    if (!("Notification" in window)) {{ setStatus("Notifications not supported"); return; }}
+    if (Notification.permission === "granted") {{ setStatus("Notifications already enabled!"); return; }}
     Notification.requestPermission().then(permission => {{
       updateNotifyBtn();
       if (permission === "granted") {{
-        setStatus("Notifications enabled \u2014 you'll be alerted when new digests arrive");
-        new Notification("Market Digest", {{
-          body: "You'll now get notified when new digests are published.",
-          icon: ""
-        }});
-      }} else {{
-        setStatus("Notifications blocked \u2014 enable in browser settings to receive alerts");
+        setStatus("Notifications enabled");
+        new Notification("{SITE_NAME}", {{ body: "You'll be notified when new dispatches arrive." }});
       }}
     }});
   }}
 
-  // Check for new digests every 5 minutes and notify
   function checkForNewDigest() {{
     fetch("digests.json?t=" + Date.now())
       .then(r => r.json())
@@ -637,9 +672,8 @@ def build_html(digest_text, subject, email_date, tts_rate):
           if (lastSeen !== latest.filename) {{
             localStorage.setItem("lastSeenDigest", latest.filename);
             if (Notification.permission === "granted" && lastSeen !== null) {{
-              const n = new Notification("New Market Digest", {{
+              const n = new Notification("{SITE_NAME}", {{
                 body: latest.subject + " \u00b7 " + latest.email_date,
-                icon: ""
               }});
               n.onclick = () => {{ window.open(latest.filename); }};
             }}
@@ -651,12 +685,9 @@ def build_html(digest_text, subject, email_date, tts_rate):
 
   window.addEventListener("load", () => {{
     updateNotifyBtn();
-    // Store current digest as seen
     localStorage.setItem("lastSeenDigest", window.location.pathname.split("/").pop());
-    // Start polling for new digests
     checkForNewDigest();
     setInterval(checkForNewDigest, 5 * 60 * 1000);
-    // Auto-start TTS
     setTimeout(() => speakFrom(0), 1800);
   }});
 </script>
@@ -666,12 +697,11 @@ def build_html(digest_text, subject, email_date, tts_rate):
 
 
 def build_index_html(digests):
-    """Build styled index page."""
     cards = ""
     for i, entry in enumerate(digests):
         tag = get_category_tag(entry["subject"])
         bg, fg = get_tag_color(tag)
-        latest = ' <span style="font-size:10px; background:#3d3820; color:#c9b97a; border:1px solid #c9b97a44; padding:2px 6px; border-radius:3px; font-family:\'Courier New\',monospace; vertical-align:middle; margin-left:6px;">LATEST</span>' if i == 0 else ""
+        latest = f' <span style="font-size:10px; background:#3d3820; color:#c9b97a; border:1px solid #c9b97a44; padding:2px 6px; border-radius:3px; font-family:\'Courier New\',monospace; vertical-align:middle; margin-left:6px;">LATEST</span>' if i == 0 else ""
         preview = entry.get("preview", "")
 
         cards += f"""
@@ -688,7 +718,7 @@ def build_index_html(digests):
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Market Digests</title>
+<title>{SITE_NAME}</title>
 <style>
   * {{ box-sizing: border-box; margin: 0; padding: 0; }}
   body {{
@@ -765,7 +795,7 @@ def build_index_html(digests):
 <body>
 
 <div class="site-header">
-  <div class="site-title">MARKET DIGEST</div>
+  <div class="site-title">THE VICTORY LANE</div>
   <div class="site-updated">Updated {updated}</div>
 </div>
 
@@ -813,7 +843,6 @@ def update_index(new_entries):
                 "sent_ts": sent_ts
             })
 
-    # Sort by sent timestamp if available, fall back to filename
     existing.sort(key=lambda x: x.get("sent_ts", x["filename"]), reverse=True)
 
     with open(meta_path, "w", encoding="utf-8") as f:
@@ -823,7 +852,7 @@ def update_index(new_entries):
     with open("docs/index.html", "w", encoding="utf-8") as f:
         f.write(index_html)
 
-    print(f"  ✓ Index updated — {len(existing)} digest(s) listed")
+    print(f"  ✓ Index updated — {len(existing)} dispatch(es) listed")
 
 
 def launch_edge(html_path, edge_exe):
@@ -831,20 +860,19 @@ def launch_edge(html_path, edge_exe):
         edge_exe = r"C:\Program Files\Microsoft\Edge\Application\msedge.exe"
     if os.path.exists(edge_exe):
         subprocess.Popen([edge_exe, html_path])
-        print(f"  ✓ Launched Edge for Guy readout")
+        print(f"  ✓ Launched Edge")
     else:
         os.startfile(html_path)
-        print(f"  ✓ Opened digest in default browser")
 
 
 def run():
-    print(f"[{datetime.now(EASTERN).strftime('%H:%M:%S ET')}] Vital Knowledge Digest starting...")
+    print(f"[{datetime.now(EASTERN).strftime('%H:%M:%S ET')}] The Victory Lane starting...")
     config = CONFIG
 
     emails, processed_ids = fetch_new_emails(config)
 
     if not emails:
-        print("  No new Vital Knowledge emails found.")
+        print("  No new emails found.")
         return
 
     print(f"  Found {len(emails)} unprocessed email(s) — processing in chronological order...")
@@ -879,7 +907,7 @@ def run():
     else:
         save_processed_ids(config["state_file"], processed_ids | new_ids)
 
-    print(f"\n  Done. Processed {len(new_ids)} email(s).")
+    print(f"\n  Done. Processed {len(new_ids)} dispatch(es).")
 
 
 if __name__ == "__main__":
