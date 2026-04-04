@@ -37,7 +37,7 @@ CONFIG = {
     "yahoo_app_password": os.environ.get("YAHOO_APP_PASSWORD", "YOUR_APP_PASSWORD"),
     "anthropic_api_key":  os.environ.get("ANTHROPIC_API_KEY",  "YOUR_ANTHROPIC_API_KEY"),
     "sender_filter":      "vitalknowledge",
-    "lookback_hours":     168,
+    "lookback_hours":     12,
     "html_output":        r"C:\Tools\VitalRecap\digest.html",
     "state_file":         r"C:\Tools\VitalRecap\processed_ids.json",
     "edge_exe":           r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
@@ -389,10 +389,16 @@ def build_html(digest_text, subject, email_date, tts_rate):
     font-size: 16px;
   }}
   .top-bar {{
+    position: sticky;
+    top: 0;
+    background: #0a0a0a;
+    z-index: 100;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: 12px 0;
     margin-bottom: 24px;
+    border-bottom: 1px solid #1a1a1a;
   }}
   .back-link {{
     font-size: 12px;
@@ -731,18 +737,33 @@ def build_index_html(digests):
     font-size: 16px;
   }}
   .site-header {{
+    position: sticky;
+    top: 0;
+    background: #0a0a0a;
+    z-index: 100;
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid #1a1a1a;
-    padding-bottom: 20px;
+    padding: 16px 0 16px;
     margin-bottom: 32px;
+  }}
+  .site-title-group {{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }}
   .site-title {{
     font-size: 20px;
     font-weight: normal;
     letter-spacing: 0.12em;
     color: #f0ece0;
+    font-family: 'Courier New', monospace;
+  }}
+  .site-subtitle {{
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: #c9b97a;
     font-family: 'Courier New', monospace;
   }}
   .site-updated {{
@@ -795,7 +816,10 @@ def build_index_html(digests):
 <body>
 
 <div class="site-header">
-  <div class="site-title">THE VICTORY LANE</div>
+  <div class="site-title-group">
+    <div class="site-title">THE VICTORY LANE</div>
+    <div class="site-subtitle">MARKET INTELLIGENTSIA</div>
+  </div>
   <div class="site-updated">Updated {updated}</div>
 </div>
 
