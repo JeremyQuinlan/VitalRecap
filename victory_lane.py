@@ -432,7 +432,7 @@ def build_html(digest_text, subject, email_date, tts_rate):
     font-size: 26px;
     font-weight: normal;
     letter-spacing: 0.02em;
-    color: #f0ece0;
+    color: #c9b97a;
     line-height: 1.3;
     margin-bottom: 8px;
   }}
@@ -457,7 +457,7 @@ def build_html(digest_text, subject, email_date, tts_rate):
     border-bottom: 1px solid #1a1a1a;
   }}
   p {{ margin-bottom: 12px; color: #ccc8bc; }}
-  strong {{ color: #f0ece0; font-weight: bold; }}
+  strong {{ color: #c9b97a; font-weight: bold; }}
   .ticker-line {{ color: #c9b97a; font-weight: bold; }}
   #tts-bar {{
     position: fixed;
@@ -757,13 +757,13 @@ def build_index_html(digests):
     font-size: 20px;
     font-weight: normal;
     letter-spacing: 0.12em;
-    color: #f0ece0;
+    color: #c9b97a;
     font-family: 'Courier New', monospace;
   }}
   .site-subtitle {{
     font-size: 11px;
     letter-spacing: 0.08em;
-    color: #c9b97a;
+    color: #f0ece0;
     font-family: 'Courier New', monospace;
   }}
   .site-updated {{
