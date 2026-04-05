@@ -37,7 +37,7 @@ CONFIG = {
     "yahoo_app_password": os.environ.get("YAHOO_APP_PASSWORD", "YOUR_APP_PASSWORD"),
     "anthropic_api_key":  os.environ.get("ANTHROPIC_API_KEY",  "YOUR_ANTHROPIC_API_KEY"),
     "sender_filter":      "vitalknowledge",
-    "lookback_hours":     12,
+    "lookback_hours":     168,
     "html_output":        r"C:\Tools\VitalRecap\digest.html",
     "state_file":         r"C:\Tools\VitalRecap\processed_ids.json",
     "edge_exe":           r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
