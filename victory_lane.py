@@ -560,11 +560,14 @@ def build_html(digest_text, subject, email_date, tts_rate):
   function getVoice() {{
     const voices = window.speechSynthesis.getVoices();
     return (
-      voices.find(v => v.name.includes("Guy")) ||       // Windows Edge
-      voices.find(v => v.name === "Aaron") ||            // iOS American male
-      voices.find(v => v.name === "Fred") ||             // iOS fallback male
+      voices.find(v => v.name.includes("Guy Online"))  ||  // Edge: Microsoft Guy Online
+      voices.find(v => v.name.includes("Guy"))         ||  // Edge fallback
+      voices.find(v => v.name === "Daniel")            ||  // iOS/macOS British male
+      voices.find(v => v.name === "Aaron")             ||  // iOS male
+      voices.find(v => v.name === "Samantha")          ||  // iOS default female
       voices.find(v => v.name.includes("Male") && v.lang.startsWith("en")) ||
-      voices.find(v => v.lang.startsWith("en-US")) ||
+      voices.find(v => v.lang.startsWith("en-US"))     ||
+      voices.find(v => v.lang.startsWith("en"))        ||
       voices[0]
     );
   }}
@@ -601,9 +604,7 @@ def build_html(digest_text, subject, email_date, tts_rate):
     const doSpeak = () => {{
       const voice = getVoice();
       if (voice) utterance.voice = voice;
-      const allVoices = window.speechSynthesis.getVoices();
-      const enVoices = allVoices.filter(v => v.lang.startsWith("en")).map(v => v.name).join(", ");
-      setStatus("Voice: " + (voice ? voice.name : "default") + " | Available: " + enVoices);
+      setStatus("Voice: " + (voice ? voice.name : "default"));
       setPlayBtn(true);
       window.speechSynthesis.speak(utterance);
     }};
