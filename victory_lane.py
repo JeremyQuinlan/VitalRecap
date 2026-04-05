@@ -37,7 +37,7 @@ CONFIG = {
     "yahoo_app_password": os.environ.get("YAHOO_APP_PASSWORD", "YOUR_APP_PASSWORD"),
     "anthropic_api_key":  os.environ.get("ANTHROPIC_API_KEY",  "YOUR_ANTHROPIC_API_KEY"),
     "sender_filter":      "vitalknowledge",
-    "lookback_hours":     168,
+    "lookback_hours":     12,
     "html_output":        r"C:\Tools\VitalRecap\digest.html",
     "state_file":         r"C:\Tools\VitalRecap\processed_ids.json",
     "edge_exe":           r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
@@ -601,7 +601,9 @@ def build_html(digest_text, subject, email_date, tts_rate):
     const doSpeak = () => {{
       const voice = getVoice();
       if (voice) utterance.voice = voice;
-      setStatus("Reading with: " + (voice ? voice.name : "default voice"));
+      const allVoices = window.speechSynthesis.getVoices();
+      const enVoices = allVoices.filter(v => v.lang.startsWith("en")).map(v => v.name).join(", ");
+      setStatus("Voice: " + (voice ? voice.name : "default") + " | Available: " + enVoices);
       setPlayBtn(true);
       window.speechSynthesis.speak(utterance);
     }};
