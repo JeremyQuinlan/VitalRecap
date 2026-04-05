@@ -560,7 +560,9 @@ def build_html(digest_text, subject, email_date, tts_rate):
   function getVoice() {{
     const voices = window.speechSynthesis.getVoices();
     return (
-      voices.find(v => v.name.includes("Guy")) ||
+      voices.find(v => v.name.includes("Guy")) ||       // Windows Edge
+      voices.find(v => v.name === "Aaron") ||            // iOS American male
+      voices.find(v => v.name === "Fred") ||             // iOS fallback male
       voices.find(v => v.name.includes("Male") && v.lang.startsWith("en")) ||
       voices.find(v => v.lang.startsWith("en-US")) ||
       voices[0]
