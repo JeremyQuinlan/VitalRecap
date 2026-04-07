@@ -2,8 +2,8 @@ name: The Victory Lane
 
 on:
   schedule:
-    # Runs every 5 minutes, all day, every day
-    - cron: '*/5 * * * *'
+    # Runs every 60 minutes, all day, every day
+    - cron: '0 * * * *'
   workflow_dispatch: # Allow manual trigger from GitHub UI
 
 jobs:
