@@ -15,6 +15,7 @@ TO RUN LOCALLY:
 
 import imaplib
 import email
+import base64
 import json
 import os
 import re
@@ -36,7 +37,6 @@ CONFIG = {
     "yahoo_email":        os.environ.get("YAHOO_EMAIL",        "YOUR_EMAIL@yahoo.com"),
     "yahoo_app_password": os.environ.get("YAHOO_APP_PASSWORD", "YOUR_APP_PASSWORD"),
     "anthropic_api_key":  os.environ.get("ANTHROPIC_API_KEY",  "YOUR_ANTHROPIC_API_KEY"),
-    "sender_filter":      "vitalknowledge",
     "lookback_hours":     168,
     "html_output":        r"C:\Tools\VitalRecap\digest.html",
     "state_file":         r"C:\Tools\VitalRecap\processed_ids.json",
@@ -44,6 +44,20 @@ CONFIG = {
     "tts_rate":           1.0,
     "github_actions":     os.environ.get("GITHUB_ACTIONS", "false").lower() == "true",
 }
+
+# ── Email sources ──
+EMAIL_SOURCES = [
+    {
+        "name": "vitalknowledge",
+        "sender_filter": "vitalknowledge",
+        "source_type": "vk",
+    },
+    {
+        "name": "earningswhispers",
+        "sender_filter": "earningswhispers",
+        "source_type": "ew",
+    },
+]
 # ─────────────────────────────────────────────
 
 SITE_NAME = "The Victory Lane"
@@ -98,8 +112,54 @@ Important rules:
 - Do not include scheduling notes, subscription info, or technical notices"""
 
 
-def clean_subject(raw_subject):
-    """Rewrite email subject to Victory Lane branding, stripping VK references."""
+EW_SUMMARIZE_PROMPT = """You are summarizing an earnings preview newsletter for a trading team called Victory Lane.
+Your job is to produce a concise but substantive earnings preview that captures the key data points
+for each company mentioned. Write in a direct, confident voice.
+
+For each company in the newsletter, create a section with:
+
+## TICKER — Company Name
+
+Include ONLY:
+- Confirmed earnings report date and time (before/after market)
+- Consensus EPS estimate and revenue estimate
+- Whisper number if different from consensus
+- Year-over-year revenue growth expectations
+- Company guidance vs consensus
+- Investor sentiment (bullish/bearish percentage)
+- Short interest changes since last earnings
+- Options market implied move vs historical average move
+- Any notable unusual options activity
+- Earnings estimate revision trends (revised higher/lower)
+
+Do NOT include:
+- Stock price movements or percentage changes
+- Distance from moving averages
+- Price drift since last earnings
+- Any price action commentary
+
+Newsletter content:
+{body}
+
+Important rules:
+- Write in a direct, confident voice throughout
+- Do NOT mention "Earnings Whispers" or the newsletter's name anywhere in your output
+- Include specific numbers for all estimates and data points
+- Keep each company section focused and concise
+- Order companies by earnings date (earliest first)
+- Do not include ads, subscription info, or promotional content"""
+
+
+def clean_subject(raw_subject, source_type="vk"):
+    """Rewrite email subject to Victory Lane branding, stripping source references."""
+    if source_type == "ew":
+        # Extract date if present
+        date_match = re.search(r"(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)?,?\s*\w+\s+\d+,?\s*\d{4}", raw_subject)
+        if not date_match:
+            date_match = re.search(r"\w+\s+\d+,?\s*\d{4}", raw_subject)
+        date_str = date_match.group(0).strip(", ") if date_match else ""
+        return f"Earnings Preview · {date_str}".strip(" ·")
+
     s = re.sub(r"^Vital Knowledge:\s*", "", raw_subject).strip()
 
     # Extract date portion if present
@@ -123,7 +183,9 @@ def clean_subject(raw_subject):
 
 def get_category_tag(subject):
     s = subject.lower()
-    if "morning intelligentsia" in s or "morning" in s:
+    if "earnings preview" in s:
+        return "EARNINGS"
+    elif "morning intelligentsia" in s or "morning" in s:
         return "MORNING"
     elif "mid-day" in s or "midday" in s:
         return "MID-DAY"
@@ -142,6 +204,7 @@ def get_tag_color(tag):
         "RECAP":    ("#2a1a1a", "#af4c4c"),
         "INTRADAY": ("#2a2a1a", "#af9f4c"),
         "UPDATE":   ("#2a1a3a", "#8f4caf"),
+        "EARNINGS": ("#2a2a1a", "#c9b97a"),
     }
     return colors.get(tag, ("#1a1a1a", "#888888"))
 
@@ -203,6 +266,21 @@ def get_email_body(msg):
     return body[:14000]
 
 
+def extract_calendar_image(msg):
+    """Extract the largest inline image from an email (the earnings calendar grid)."""
+    largest = None
+    largest_size = 0
+    for part in msg.walk():
+        ct = part.get_content_type()
+        if ct.startswith("image/"):
+            payload = part.get_payload(decode=True)
+            if payload and len(payload) > largest_size:
+                largest_size = len(payload)
+                ext = ct.split("/")[-1].replace("jpeg", "jpg")
+                largest = (payload, ext, ct)
+    return largest
+
+
 def get_email_date(msg):
     date_str = msg.get("Date", "")
     try:
@@ -229,57 +307,66 @@ def fetch_new_emails(config):
     mail.login(config["yahoo_email"], config["yahoo_app_password"])
     mail.select("inbox")
 
-    since_date = (datetime.utcnow() - timedelta(hours=config["lookback_hours"] + 24)).strftime("%d-%b-%Y")
-    sender = config["sender_filter"]
-    status, data = mail.uid('search', None, f'(SINCE "{since_date}" FROM "{sender}")')
-
-    uids = data[0].split()
-    results = []
-
     if config["github_actions"]:
         processed = load_processed_ids_github()
     else:
         processed = load_processed_ids(config["state_file"])
 
+    since_date = (datetime.utcnow() - timedelta(hours=config["lookback_hours"] + 24)).strftime("%d-%b-%Y")
     cutoff = datetime.now(timezone.utc) - timedelta(hours=config["lookback_hours"])
+    results = []
 
-    for uid in uids:
-        uid_str = uid.decode()
-        if uid_str in processed:
-            print(f"  Skipping already processed UID {uid_str}")
-            continue
+    for source in EMAIL_SOURCES:
+        sender = source["sender_filter"]
+        source_type = source["source_type"]
+        print(f"\n  Checking source: {source['name']}...")
 
-        status, msg_data = mail.uid('fetch', uid, "(BODY.PEEK[])")
-        raw = msg_data[0][1]
-        msg = email.message_from_bytes(raw)
+        status, data = mail.uid('search', None, f'(SINCE "{since_date}" FROM "{sender}")')
+        uids = data[0].split()
 
-        sent_utc = get_email_sent_utc(msg)
-        if sent_utc < cutoff:
-            print(f"  Skipping old email (sent {sent_utc.strftime('%Y-%m-%d %H:%M UTC')})")
-            continue
+        for uid in uids:
+            uid_str = uid.decode()
+            if uid_str in processed:
+                print(f"  Skipping already processed UID {uid_str}")
+                continue
 
-        raw_subject = decode_str(msg.get("Subject", "(No Subject)"))
-        subject = clean_subject(raw_subject)
-        body = get_email_body(msg)
-        email_date = get_email_date(msg)
+            status, msg_data = mail.uid('fetch', uid, "(BODY.PEEK[])")
+            raw = msg_data[0][1]
+            msg = email.message_from_bytes(raw)
 
-        if body.strip():
-            results.append((uid_str, subject, body, email_date, sent_utc))
-            print(f"  Found: {subject} ({email_date})")
-            # Mark this Vital Knowledge email as read
-            mail.uid('store', uid, '+FLAGS', '\\Seen')
+            sent_utc = get_email_sent_utc(msg)
+            if sent_utc < cutoff:
+                print(f"  Skipping old email (sent {sent_utc.strftime('%Y-%m-%d %H:%M UTC')})")
+                continue
+
+            raw_subject = decode_str(msg.get("Subject", "(No Subject)"))
+            subject = clean_subject(raw_subject, source_type)
+            body = get_email_body(msg)
+            email_date = get_email_date(msg)
+
+            # Extract calendar image for Earnings Whispers
+            calendar_image = None
+            if source_type == "ew":
+                calendar_image = extract_calendar_image(msg)
+
+            if body.strip():
+                results.append((uid_str, subject, body, email_date, sent_utc, source_type, calendar_image))
+                print(f"  Found: {subject} ({email_date})")
+                # Mark as read
+                mail.uid('store', uid, '+FLAGS', '\\Seen')
 
     mail.logout()
     results.sort(key=lambda x: x[4])
     return results, processed
 
 
-def summarize_with_claude(body, api_key):
+def summarize_with_claude(body, api_key, source_type="vk"):
     client = anthropic.Anthropic(api_key=api_key)
+    prompt = EW_SUMMARIZE_PROMPT if source_type == "ew" else SUMMARIZE_PROMPT
     message = client.messages.create(
         model="claude-sonnet-4-20250514",
         max_tokens=1800,
-        messages=[{"role": "user", "content": SUMMARIZE_PROMPT.format(body=body)}]
+        messages=[{"role": "user", "content": prompt.format(body=body)}]
     )
     return message.content[0].text
 
@@ -358,8 +445,14 @@ def prepare_tts_text(html_body):
     return text
 
 
-def build_html(digest_text, subject, email_date, tts_rate):
+def build_html(digest_text, subject, email_date, tts_rate, calendar_image_path=None):
     body_html = markdown_to_html_body(digest_text)
+    calendar_html = ""
+    if calendar_image_path:
+        calendar_html = f"""<div style="margin-bottom:28px; text-align:center;">
+  <img src="{calendar_image_path}" alt="Earnings Calendar" style="max-width:100%; border-radius:6px; border:1px solid #1a1a1a;">
+</div>
+"""
     tts_text = prepare_tts_text(body_html)
     tts_text_escaped = (tts_text
         .replace("\\", "\\\\")
@@ -541,7 +634,7 @@ def build_html(digest_text, subject, email_date, tts_rate):
 </header>
 <hr class="divider">
 
-{body_html}
+{calendar_html}{body_html}
 
 <div id="tts-bar">
   <button id="btn-play" onclick="togglePlay()">&#9654; Play</button>
@@ -946,13 +1039,27 @@ def run():
     new_ids = set()
     new_index_entries = []
 
-    for uid, subject, body, email_date, sent_utc in emails:
+    for uid, subject, body, email_date, sent_utc, source_type, calendar_image in emails:
         print(f"\n  ── Processing: {subject} ({email_date}) ──")
         try:
             print("  Summarizing with Claude...")
-            digest = summarize_with_claude(body, config["anthropic_api_key"])
+            digest = summarize_with_claude(body, config["anthropic_api_key"], source_type)
             preview = get_preview(digest)
-            html = build_html(digest, subject, email_date, config["tts_rate"])
+
+            # Save calendar image for EW emails
+            calendar_image_path = None
+            if calendar_image and config["github_actions"]:
+                img_data, img_ext, img_ct = calendar_image
+                slug = re.sub(r"[^a-z0-9]+", "-", subject.lower()).strip("-")[:80]
+                img_filename = f"{slug}-calendar.{img_ext}"
+                img_filepath = f"docs/{img_filename}"
+                os.makedirs("docs", exist_ok=True)
+                with open(img_filepath, "wb") as f:
+                    f.write(img_data)
+                calendar_image_path = img_filename
+                print(f"  ✓ Calendar image saved: {img_filepath}")
+
+            html = build_html(digest, subject, email_date, config["tts_rate"], calendar_image_path)
 
             if config["github_actions"]:
                 filename = save_html_github(html, subject)
