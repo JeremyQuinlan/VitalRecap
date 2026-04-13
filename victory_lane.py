@@ -270,7 +270,7 @@ def get_email_body(msg):
                 body = re.sub(r"\s+", " ", body).strip()
     else:
         body = msg.get_payload(decode=True).decode("utf-8", errors="replace")
-    return body[:14000]
+    return body[:30000]
 
 
 def extract_calendar_image(msg):
@@ -413,9 +413,10 @@ def fetch_new_emails(config):
 def summarize_with_claude(body, api_key, source_type="vk"):
     client = anthropic.Anthropic(api_key=api_key)
     prompt = EW_SUMMARIZE_PROMPT if source_type == "ew" else SUMMARIZE_PROMPT
+    max_tok = 3000 if source_type == "ew" else 1800
     message = client.messages.create(
         model="claude-sonnet-4-20250514",
-        max_tokens=1800,
+        max_tokens=max_tok,
         messages=[{"role": "user", "content": prompt.format(body=body)}]
     )
     return message.content[0].text
